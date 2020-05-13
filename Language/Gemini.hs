@@ -11,6 +11,7 @@ module Language.Gemini (
 import Data.Text.Lazy (Text)
 import qualified Data.Text.Lazy as T
 
+import Data.Char (isSpace)
 import Data.Maybe (fromMaybe)
 
 -- Gemini documents
@@ -40,25 +41,43 @@ encodeGemini :: GeminiDocument -> Text
 encodeGemini = T.intercalate (T.pack "\CR\LF") . fmap encodeLine
 
 encodeLine :: GeminiLine -> Text
-encodeLine (LText t) = escapeText t
-encodeLine (LLink l desc) = T.pack "=> " <> l <> T.pack " " <> desc'
-  where desc' = maybe T.empty (T.pack "" <>) desc
+encodeLine (LText t) = escapeLText t
+encodeLine (LLink l desc) = T.pack "=> " <> escapeLink l <> T.pack " " <> desc'
+  where desc' = maybe T.empty escapeNewlines desc
 encodeLine (LPre ls) = T.intercalate (T.pack "\CR\LF") $
-  T.pack "```" : fmap escapePre ls <> [T.pack "```"]
-encodeLine (LH1 t) = T.pack "# " <> t
-encodeLine (LH2 t) = T.pack "## " <> t
-encodeLine (LH3 t) = T.pack "### " <> t
-encodeLine (LItem t) = T.pack "* " <> t
+  T.pack "```" : fmap escapeLPre ls <> [T.pack "```"]
+encodeLine (LH1 t) = T.pack "# " <> escapeNewlines t
+encodeLine (LH2 t) = T.pack "## " <> escapeNewlines t
+encodeLine (LH3 t) = T.pack "### " <> escapeNewlines t
+encodeLine (LItem t) = T.pack "* " <> escapeNewlines t
 
---- TODO ask about actual escaping rules
+--- TODO ask about actual escaping rules instead of just using "\\" and stripping newlines
 
-escapeText :: Text -> Text
-escapeText t | reservedPrefix t = T.cons '\\' t
-             | otherwise        = t
+escapeLPre :: Text -> Text
+escapeLPre = escapePrePrefix . escapeNewlines
 
-escapePre :: Text -> Text
-escapePre t | T.pack "```" `T.isPrefixOf` t = T.cons '\\' t
-            | otherwise                     = t
+escapeLText :: Text -> Text
+escapeLText = escapeAnyPrefix . escapeNewlines
+
+escapeLink :: Text -> Text
+-- Ideally spaces should be urlencoded but nonmalicious agents wouldn't put
+-- whitespace in a link anyway.
+escapeLink = T.map $ \c -> if isSpace c then '+' else c
+
+escapeNewlines :: Text -> Text
+escapeNewlines = T.map crlfToSpace
+  where
+    crlfToSpace '\CR' = ' '
+    crlfToSpace '\LF' = ' '
+    crlfToSpace c     = c
+
+escapePrePrefix :: Text -> Text
+escapePrePrefix t | T.pack "```" `T.isPrefixOf` t = T.cons '\\' t
+                  | otherwise                     = t
+
+escapeAnyPrefix :: Text -> Text
+escapeAnyPrefix t | reservedPrefix t = T.cons '\\' t
+                  | otherwise        = t
 
 reservedPrefix :: Text -> Bool
 reservedPrefix t = any (`T.isPrefixOf` t) $ T.pack <$>
