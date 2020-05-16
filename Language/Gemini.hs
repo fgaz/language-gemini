@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Language.Gemini (
 -- * Gemini documents
   GeminiDocument
@@ -38,18 +39,18 @@ decodeGemini = error "Gemini decoding not implemented" --TODO (also lenient (LF-
 ----------------------------
 
 encodeGemini :: GeminiDocument -> Text
-encodeGemini = T.intercalate (T.pack "\CR\LF") . fmap encodeLine
+encodeGemini = T.intercalate "\CR\LF" . fmap encodeLine
 
 encodeLine :: GeminiLine -> Text
 encodeLine (LText t) = escapeLText t
-encodeLine (LLink l desc) = T.pack "=> " <> escapeLink l <> T.pack " " <> desc'
+encodeLine (LLink l desc) = "=> " <> escapeLink l <> " " <> desc'
   where desc' = maybe T.empty escapeNewlines desc
-encodeLine (LPre ls) = T.intercalate (T.pack "\CR\LF") $
-  T.pack "```" : fmap escapeLPre ls <> [T.pack "```"]
-encodeLine (LH1 t) = T.pack "# " <> escapeNewlines t
-encodeLine (LH2 t) = T.pack "## " <> escapeNewlines t
-encodeLine (LH3 t) = T.pack "### " <> escapeNewlines t
-encodeLine (LItem t) = T.pack "* " <> escapeNewlines t
+encodeLine (LPre ls) = T.intercalate "\CR\LF" $
+  "```" : fmap escapeLPre ls <> ["```"]
+encodeLine (LH1 t) = "# " <> escapeNewlines t
+encodeLine (LH2 t) = "## " <> escapeNewlines t
+encodeLine (LH3 t) = "### " <> escapeNewlines t
+encodeLine (LItem t) = "* " <> escapeNewlines t
 
 --- TODO ask about actual escaping rules instead of just using "\\" and stripping newlines
 
@@ -72,7 +73,7 @@ escapeNewlines = T.map crlfToSpace
     crlfToSpace c     = c
 
 escapePrePrefix :: Text -> Text
-escapePrePrefix t | T.pack "```" `T.isPrefixOf` t = T.cons '\\' t
+escapePrePrefix t | "```" `T.isPrefixOf` t = T.cons '\\' t
                   | otherwise                     = t
 
 escapeAnyPrefix :: Text -> Text
@@ -80,7 +81,7 @@ escapeAnyPrefix t | reservedPrefix t = T.cons '\\' t
                   | otherwise        = t
 
 reservedPrefix :: Text -> Bool
-reservedPrefix t = any (`T.isPrefixOf` t) $ T.pack <$>
+reservedPrefix t = any (`T.isPrefixOf` t)
   [ "=>"
   , "```"
   , "#"
