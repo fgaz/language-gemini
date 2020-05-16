@@ -13,7 +13,7 @@ import Data.Text.Lazy (Text)
 import qualified Data.Text.Lazy as T
 
 import Data.Char (isSpace)
-import Data.Maybe (fromMaybe)
+import Data.Int (Int64)
 
 -- Gemini documents
 ----------------------------
@@ -32,8 +32,31 @@ data GeminiLine = LText Text
 -- Decoding
 ----------------------------
 
-decodeGemini :: Text -> GeminiDocument
-decodeGemini = error "Gemini decoding not implemented" --TODO (also lenient (LF-only) variant)
+decodeGemini :: Bool -- ^ Whether to allow unix-style line endings (\n)
+             -> Text -- ^ Text to parse
+             -> GeminiDocument
+-- gemini is really simple, so we do not even use a parsing library
+decodeGemini allowUnixStyle = go . (if allowUnixStyle then concatMap T.lines else id)
+                                 . T.splitOn "\CR\LF"
+  where
+    go [] = []
+    go ("```":ls) = LPre pres : go (drop 1 rest)
+      where (pres, rest) = break ("```"==) ls
+    go (l:ls) | "=>" `T.isPrefixOf` l = parseLink l : go ls
+              | "###" `T.isPrefixOf` l = LH3 (dropPrefix 3 l) : go ls
+              | "##" `T.isPrefixOf` l = LH2 (dropPrefix 2 l) : go ls
+              | "#" `T.isPrefixOf` l = LH1 (dropPrefix 1 l) : go ls
+              | "*" `T.isPrefixOf` l = LItem (dropPrefix 1 l) : go ls
+              | otherwise = LText l : go ls
+
+dropPrefix :: Int64 -> Text -> Text
+dropPrefix n = T.stripStart . T.drop n
+
+parseLink :: Text -> GeminiLine
+parseLink txt = LLink link $ if T.null desc' then Nothing else Just desc'
+  where
+    (link, desc) = T.break isSpace $ T.stripStart txt
+    desc' = T.stripStart desc
 
 -- Encoding
 ----------------------------
