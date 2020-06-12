@@ -27,6 +27,7 @@ data GeminiLine = LText Text
                 | LH2 Text
                 | LH3 Text
                 | LItem Text
+                | LQuote Text
   deriving (Show, Read, Eq)
 
 -- Decoding
@@ -46,7 +47,8 @@ decodeGemini allowUnixStyle = go . (if allowUnixStyle then concatMap T.lines els
               | "###" `T.isPrefixOf` l = LH3 (dropPrefix 3 l) : go ls
               | "##" `T.isPrefixOf` l = LH2 (dropPrefix 2 l) : go ls
               | "#" `T.isPrefixOf` l = LH1 (dropPrefix 1 l) : go ls
-              | "*" `T.isPrefixOf` l = LItem (dropPrefix 1 l) : go ls
+              | "* " `T.isPrefixOf` l = LItem (dropPrefix 2 l) : go ls
+              | ">" `T.isPrefixOf` l = LQuote (dropPrefix 1 l) : go ls
               | otherwise = LText l : go ls
 
 isPreToggle :: Text -> Bool
@@ -77,6 +79,7 @@ encodeLine (LH1 t) = "# " <> escapeNewlines t
 encodeLine (LH2 t) = "## " <> escapeNewlines t
 encodeLine (LH3 t) = "### " <> escapeNewlines t
 encodeLine (LItem t) = "* " <> escapeNewlines t
+encodeLine (LQuote t) = "> " <> escapeNewlines t
 
 --- TODO ask about actual escaping rules instead of just using "\\" and stripping newlines
 
@@ -111,6 +114,7 @@ reservedPrefix t = any (`T.isPrefixOf` t)
   [ "=>"
   , "```"
   , "#"
-  , "*"
+  , "* "
+  , ">"
   ]
 
