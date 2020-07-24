@@ -82,6 +82,8 @@ encodeLine (LItem t) = "* " <> escapeNewlines t
 encodeLine (LQuote t) = "> " <> escapeNewlines t
 
 --- TODO ask about actual escaping rules instead of just using "\\" and stripping newlines
+escapeCharacter :: Char
+escapeCharacter = ' '
 
 escapeLPre :: Text -> Text
 escapeLPre = escapePrePrefix . escapeNewlines
@@ -102,11 +104,11 @@ escapeNewlines = T.map crlfToSpace
     crlfToSpace c     = c
 
 escapePrePrefix :: Text -> Text
-escapePrePrefix t | "```" `T.isPrefixOf` t = T.cons '\\' t
+escapePrePrefix t | "```" `T.isPrefixOf` t = T.cons escapeCharacter t
                   | otherwise                     = t
 
 escapeAnyPrefix :: Text -> Text
-escapeAnyPrefix t | reservedPrefix t = T.cons '\\' t
+escapeAnyPrefix t | reservedPrefix t = T.cons escapeCharacter t
                   | otherwise        = t
 
 reservedPrefix :: Text -> Bool
