@@ -20,14 +20,14 @@ import Data.Int (Int64)
 
 type GeminiDocument = [GeminiLine]
 
-data GeminiLine = LText Text
-                | LLink Text (Maybe Text)
-                | LPre [Text] --not really a line...
-                | LH1 Text
-                | LH2 Text
-                | LH3 Text
-                | LItem Text
-                | LQuote Text
+data GeminiLine = LText Text -- ^ Normal text
+                | LLink Text (Maybe Text) -- ^ A link with an optional description
+                | LPre [Text] -- ^ A preformatted block containing multiple lines
+                | LH1 Text -- ^ A first level heading
+                | LH2 Text -- ^ A second level heading
+                | LH3 Text -- ^ A third level heading
+                | LItem Text -- ^ A list item
+                | LQuote Text -- ^ A quotation
   deriving (Show, Read, Eq)
 
 -- Decoding
