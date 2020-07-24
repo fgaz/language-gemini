@@ -3,7 +3,10 @@ cabal-version:       2.2
 name:                language-gemini
 version:             0.1.0.0
 synopsis:            Datatypes and parsing/printing functions to represent the Gemini markup language
--- description:
+description:
+  This package contains the 'GeminiDocument' datatype, representing a Gemini
+  (<https://gemini.circumlunar.space>) document, together with functions for
+  parsing and printing Gemini documents to/from 'Text' data.
 homepage:            https://sr.ht/~fgaz/haskell-gemini/
 bug-reports:         https://todo.sr.ht/~fgaz/haskell-gemini
 license:             BSD-3-Clause
