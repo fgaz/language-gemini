@@ -4,3 +4,6 @@ dist-newstyle
 *.hi
 .ghc.environment.*
 
+.vscode
+*.lock
+.stack-work
