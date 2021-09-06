@@ -117,7 +117,7 @@ geminiTrip = hedgehog $ do
         , lPre
         {-
         LLink not trips. Consider add encodeGeminiLenient to return spaces.
-        Or batter rename current encodeGemini to encodeGeminiEscapeSpace
+        Or better rename current encodeGemini to encodeGeminiEscapeSpace
         decodeGemini False $ encodeGemini $ [LLink "d d l" Nothing]
         [LLink "d+d+l" Nothing]
         -}

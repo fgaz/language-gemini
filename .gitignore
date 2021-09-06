@@ -3,7 +3,3 @@ dist-newstyle
 *.o
 *.hi
 .ghc.environment.*
-
-.vscode
-*.lock
-.stack-work
