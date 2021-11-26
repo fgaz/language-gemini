@@ -43,7 +43,7 @@ decodeGemini allowUnixStyle = go . (if allowUnixStyle then concatMap T.lines els
     go [] = []
     go (l:ls) | isPreToggle l = let (pres, rest) = break isPreToggle ls
                                  in LPre pres : go (drop 1 rest)
-              | "=>" `T.isPrefixOf` l = parseLink l : go ls
+              | "=>" `T.isPrefixOf` l = parseLink (dropPrefix 2 l) : go ls
               | "###" `T.isPrefixOf` l = LH3 (dropPrefix 3 l) : go ls
               | "##" `T.isPrefixOf` l = LH2 (dropPrefix 2 l) : go ls
               | "#" `T.isPrefixOf` l = LH1 (dropPrefix 1 l) : go ls
@@ -60,7 +60,7 @@ dropPrefix n = T.stripStart . T.drop n
 parseLink :: Text -> GeminiLine
 parseLink txt = LLink link $ if T.null desc' then Nothing else Just desc'
   where
-    (link, desc) = T.break isSpace $ T.stripStart txt
+    (link, desc) = T.break isSpace txt
     desc' = T.stripStart desc
 
 -- Encoding
