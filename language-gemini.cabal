@@ -47,7 +47,7 @@ test-suite language
                        -Wall
   build-depends:       language-gemini
                      , base
-                     , hspec ^>=2.8.3 || ^>=2.11
+                     , hspec ^>=2.8.3 || ^>=2.10 || ^>=2.11
                      , hedgehog ^>=1.0.5 || ^>=1.2
                      , hspec-hedgehog ^>=0.0.1.2
                      , text >=1.2.5.0
